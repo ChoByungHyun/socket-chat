@@ -13,7 +13,7 @@ function ChatApp() {
   const [nickname, setNickname] = useState(""); // 닉네임 상태 추가
   const chatListRef = useRef<HTMLDivElement | null>(null); // 스크롤을 조절할 ref
   const [isNicknameSet, setIsNicknameSet] = useState(false);
-  const [prevNickname, setPrevNickname] = useState("");
+  const [serverConnected, setServerConnected] = useState(false);
 
   useEffect(() => {
     // 서버로부터 메시지를 수신할 때
@@ -21,14 +21,21 @@ function ChatApp() {
       setMessages((prevMessages) => [...prevMessages, data]);
       // 스크롤을 맨 아래로 이동
     });
-    scrollToBottom();
-    // 서버와의 연결 상태를 확인하기 위한 이벤트 핸들러
-    socket.on("disconnect", () => {
-      console.log("서버와 연결이 끊어졌습니다.");
-    });
+    const handleServerConnect = () => {
+      setServerConnected(true);
+    };
+
+    const handleServerDisconnect = () => {
+      setServerConnected(false);
+    };
+
+    // 서버 연결 및 연결 해제 이벤트를 감시
+    socket.on("connect", handleServerConnect);
+    socket.on("disconnect", handleServerDisconnect);
 
     return () => {
-      // socket.disconnect();
+      socket.off("connect", handleServerConnect);
+      socket.off("disconnect", handleServerDisconnect);
     };
   }, []);
   useEffect(() => {
@@ -64,17 +71,21 @@ function ChatApp() {
     <div>
       <SChatLayout>
         <SChatListLayout ref={chatListRef}>
-          {messages.map((data, index) => (
-            <div key={index}>
-              <strong
-                className={isMyMessage(data.nickname) ? "my-message" : ""}
-              >
-                {data.nickname}:{" "}
-              </strong>
+          {serverConnected ? (
+            messages.map((data, index) => (
+              <div key={index}>
+                <strong
+                  className={isMyMessage(data.nickname) ? "my-message" : ""}
+                >
+                  {data.nickname}:{" "}
+                </strong>
 
-              {data.message}
-            </div>
-          ))}
+                {data.message}
+              </div>
+            ))
+          ) : (
+            <div>서버와 연결 중...</div>
+          )}
         </SChatListLayout>
         {/* 닉네임 입력 필드 */}
         <SNickName
