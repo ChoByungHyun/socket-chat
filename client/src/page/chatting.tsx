@@ -3,7 +3,8 @@ import io from "socket.io-client";
 import styled from "styled-components";
 
 const serverUrl: string | undefined = process.env.REACT_APP_SERVER_URL || "";
-const socket = io(serverUrl);
+const testLocalUrl = "http://localhost:3001";
+const socket = io(testLocalUrl);
 
 function ChatApp() {
   const [messages, setMessages] = useState<
@@ -58,15 +59,17 @@ function ChatApp() {
   };
 
   const setNickName = () => {
-    // 클라이언트 소켓을 통해 닉네임 설정 이벤트를 서버에 전송
-    socket.emit("set nickname", nickname);
-    // 서버로부터 닉네임 중복 여부를 확인
-    socket.on("nickname taken", () => {
-      alert("이미 사용 중인 닉네임입니다. 다른 닉네임을 선택해주세요.");
+    // 클라이언트 소켓을 통해 서버에 닉네임 중복 여부를 요청
+    socket.emit("check nickname", nickname);
+
+    // 서버로부터 중복 여부 확인 후 설정 여부를 받음
+    socket.on("nickname available", () => {
+      setIsNicknameSet(true);
     });
 
-    // 닉네임이 설정되면 입력 필드 비활성화 및 수정 버튼 활성화
-    setIsNicknameSet(true);
+    socket.once("nickname taken", () => {
+      alert("이미 사용 중인 닉네임입니다. 다른 닉네임을 선택해주세요.");
+    });
   };
 
   // 스크롤을 최하단으로 이동하는 함수
@@ -81,8 +84,8 @@ function ChatApp() {
   };
 
   return (
-    <div>
-      <SChatLayout>
+    <SChatLayout>
+      <SChattingLayout>
         <SChatListLayout ref={chatListRef}>
           {serverConnected ? (
             messages.map((data, index) => (
@@ -100,12 +103,13 @@ function ChatApp() {
             <div>서버와 연결 중...</div>
           )}
         </SChatListLayout>
-        {/* 닉네임 입력 필드 */}
-        <SNickName
+      </SChattingLayout>
+      <div>
+        <SNickNameInput
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          placeholder="닉네임을 입력하세요"
+          placeholder="닉네임"
           disabled={isNicknameSet}
           onKeyDown={(e) => {
             if (e.key === "Enter") setNickName();
@@ -113,12 +117,16 @@ function ChatApp() {
           autoFocus
         />
         {!isNicknameSet ? (
-          <button onClick={setNickName}>닉네임 설정</button>
+          <SSendButton onClick={setNickName} disabled={isNicknameSet}>
+            닉네임 설정
+          </SSendButton>
         ) : (
-          <button onClick={() => setIsNicknameSet(false)}>닉네임 수정</button>
+          <SSendButton onClick={() => setIsNicknameSet(false)}>
+            닉네임 수정
+          </SSendButton>
         )}
         <div>
-          <input
+          <SMessageInput
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -129,24 +137,68 @@ function ChatApp() {
             disabled={!isNicknameSet}
             ref={messageInputRef}
           />
-          <button onClick={sendMessage}>전송</button>
+          <SSendButton disabled={!isNicknameSet} onClick={sendMessage}>
+            전송
+          </SSendButton>
         </div>
-      </SChatLayout>
-    </div>
+      </div>
+    </SChatLayout>
   );
 }
-const SNickName = styled.input`
-  width: 80px;
-  text-align: center;
+
+const SChattingLayout = styled.div`
+  background-color: #dfdcdc;
 `;
-const SChatLayout = styled.div``;
+
+const SInputStyle = styled.input`
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "text")};
+  background-color: ${(props) => (props.disabled ? "#f0f0f0" : "white")};
+  color: ${(props) => (props.disabled ? "gray" : "black")};
+  &:focus {
+    outline: 1px solid #007bff;
+  }
+`;
+
+const SSendButton = styled.button`
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  vertical-align: bottom;
+  margin-left: 2px;
+  cursor: pointer;
+  background-color: ${(props) => (props.disabled ? "#ccc" : "white")};
+  color: ${(props) => (props.disabled ? "gray" : "black")};
+
+  &:hover {
+    background-color: ${(props) => (props.disabled ? "#ccc" : "#f0f0f0")};
+  }
+`;
+const SMessageInput = styled(SInputStyle)`
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 5px 10px;
+`;
+const SNickNameInput = styled(SInputStyle)`
+  width: 70px;
+  text-align: center;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+`;
+const SChatLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
 
 const SChatListLayout = styled.div`
   height: 50vh;
   overflow-y: scroll;
   border: 1px solid #ccc;
   .my-message {
-    color: blue; // 본인 메시지를 파란색으로 표시
+    color: #007bff;
   }
 `;
 

@@ -27,12 +27,12 @@ const clients = new Map();
 io.on("connection", (socket) => {
   console.log("클라이언트가 연결되었습니다.");
 
-  // 클라이언트로부터 닉네임 설정 이벤트 받기
-  socket.on("set nickname", (nickname) => {
+  socket.on("check nickname", (nickname) => {
     // 닉네임 중복 검사
     if (isNicknameTaken(nickname)) {
       socket.emit("nickname taken");
     } else {
+      socket.emit("nickname available");
       // 이전 닉네임 가져오기
       const prevNickname = clients.get(socket);
 
@@ -50,6 +50,7 @@ io.on("connection", (socket) => {
       io.emit("chat message", { nickname: "시스템", message: entryMessage });
     }
   });
+
   socket.on("chat message", (msg) => {
     // 클라이언트의 닉네임을 가져오기
     const nickname = clients.get(socket);
