@@ -8,7 +8,7 @@ import MessageInput from "./Components/MessageInput";
 
 const serverUrl: string | undefined = process.env.REACT_APP_SERVER_URL || "";
 const testLocalUrl = "http://localhost:3001";
-const socket = io(testLocalUrl);
+const socket = io(serverUrl);
 
 function App() {
   const [messages, setMessages] = useState<
