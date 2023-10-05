@@ -1,5 +1,5 @@
 // App.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import styled from "styled-components";
 import ChattingLayout from "./Components/ChattingLayout";
@@ -17,6 +17,7 @@ function App() {
   const [nickname, setNickname] = useState("");
   const [isNicknameSet, setIsNicknameSet] = useState(false);
   const [serverConnected, setServerConnected] = useState(false);
+  const chatListRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // 서버로부터 메시지를 수신할 때
@@ -76,7 +77,11 @@ function App() {
   return (
     <SChatLayout>
       {serverConnected ? (
-        <ChattingLayout messages={messages} isMyMessage={isMyMessage} />
+        <ChattingLayout
+          messages={messages}
+          isMyMessage={isMyMessage}
+          chatListRef={chatListRef}
+        />
       ) : (
         <div>서버와 연결 중...</div>
       )}
@@ -89,6 +94,7 @@ function App() {
         <MessageInput
           isNicknameSet={isNicknameSet}
           onSendMessage={sendMessage}
+          chatListRef={chatListRef}
         />
       </SFormLayout>
     </SChatLayout>

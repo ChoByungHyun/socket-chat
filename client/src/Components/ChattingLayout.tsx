@@ -5,14 +5,14 @@ import styled from "styled-components";
 interface ChattingLayoutProps {
   messages: { nickname: string; message: string }[];
   isMyMessage: (msgNickname: string) => boolean;
+  chatListRef: React.RefObject<HTMLDivElement>;
 }
 
 const ChattingLayout: React.FC<ChattingLayoutProps> = ({
   messages,
   isMyMessage,
+  chatListRef,
 }) => {
-  const chatListRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);

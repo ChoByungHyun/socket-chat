@@ -6,11 +6,12 @@ import * as Styled from "../Style/Style";
 interface MessageInputProps {
   isNicknameSet: boolean;
   onSendMessage: (message: string) => void;
+  chatListRef: React.RefObject<HTMLDivElement>;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
   isNicknameSet,
-
+  chatListRef,
   onSendMessage,
 }) => {
   const messageInputRef = useRef<HTMLInputElement | null>(null);
@@ -26,8 +27,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
     if (inputMessage && isNicknameSet) {
       // 서버에 닉네임과 메시지 함께 전송
       onSendMessage(inputMessage);
-
       setInputMessage("");
+      chatListRef.current?.focus();
     }
   };
 
@@ -57,7 +58,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
 };
 
 const SMessageInput = styled(Styled.SInputStyle)`
-  width: 300px;
+  width: 250px;
   border: 1px solid #ccc;
   border-radius: 10px;
 `;
