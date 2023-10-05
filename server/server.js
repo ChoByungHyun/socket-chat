@@ -29,21 +29,26 @@ io.on("connection", (socket) => {
 
   // 클라이언트로부터 닉네임 설정 이벤트 받기
   socket.on("set nickname", (nickname) => {
-    // 이전 닉네임 가져오기
-    const prevNickname = clients.get(socket);
-
-    // 닉네임을 클라이언트 소켓과 연결
-    clients.set(socket, nickname);
-    console.log(`클라이언트의 닉네임이 설정되었습니다: ${nickname}`);
-
-    // 입장/닉네임 변경 메시지 전송
-    let entryMessage;
-    if (prevNickname) {
-      entryMessage = `${prevNickname}님이 ${nickname}로 닉네임을 변경하였습니다`;
+    // 닉네임 중복 검사
+    if (isNicknameTaken(nickname)) {
+      socket.emit("nickname taken");
     } else {
-      entryMessage = `${nickname}님이 입장하였습니다`;
+      // 이전 닉네임 가져오기
+      const prevNickname = clients.get(socket);
+
+      // 닉네임을 클라이언트 소켓과 연결
+      clients.set(socket, nickname);
+      console.log(`클라이언트의 닉네임이 설정되었습니다: ${nickname}`);
+
+      // 입장/닉네임 변경 메시지 전송
+      let entryMessage;
+      if (prevNickname) {
+        entryMessage = `${prevNickname}님이 ${nickname}로 닉네임을 변경하였습니다`;
+      } else {
+        entryMessage = `${nickname}님이 입장하였습니다`;
+      }
+      io.emit("chat message", { nickname: "시스템", message: entryMessage });
     }
-    io.emit("chat message", { nickname: "시스템", message: entryMessage });
   });
   socket.on("chat message", (msg) => {
     // 클라이언트의 닉네임을 가져오기
@@ -66,3 +71,13 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
   console.log(`서버가 ${PORT} 포트에서 실행 중입니다.`);
 });
+
+function isNicknameTaken(nickname) {
+  // 중복된 닉네임 검사를 수행하고 중복된 경우 true 반환
+  for (const clientNickname of clients.values()) {
+    if (clientNickname === nickname) {
+      return true;
+    }
+  }
+  return false;
+}

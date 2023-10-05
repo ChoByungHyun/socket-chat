@@ -10,8 +10,9 @@ function ChatApp() {
     { nickname: string; message: string }[]
   >([]);
   const [message, setMessage] = useState("");
-  const [nickname, setNickname] = useState(""); // 닉네임 상태 추가
-  const chatListRef = useRef<HTMLDivElement | null>(null); // 스크롤을 조절할 ref
+  const [nickname, setNickname] = useState("");
+  const chatListRef = useRef<HTMLDivElement | null>(null);
+  const messageInputRef = useRef<HTMLInputElement | null>(null);
   const [isNicknameSet, setIsNicknameSet] = useState(false);
   const [serverConnected, setServerConnected] = useState(false);
 
@@ -19,7 +20,6 @@ function ChatApp() {
     // 서버로부터 메시지를 수신할 때
     socket.on("chat message", (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
-      // 스크롤을 맨 아래로 이동
     });
     const handleServerConnect = () => {
       setServerConnected(true);
@@ -38,9 +38,16 @@ function ChatApp() {
       socket.off("disconnect", handleServerDisconnect);
     };
   }, []);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (isNicknameSet && messageInputRef.current) {
+      messageInputRef.current.focus();
+    }
+  }, [isNicknameSet]);
 
   const sendMessage = () => {
     if (message && isNicknameSet) {
@@ -53,6 +60,12 @@ function ChatApp() {
   const setNickName = () => {
     // 클라이언트 소켓을 통해 닉네임 설정 이벤트를 서버에 전송
     socket.emit("set nickname", nickname);
+    // 서버로부터 닉네임 중복 여부를 확인
+    socket.on("nickname taken", () => {
+      alert("이미 사용 중인 닉네임입니다. 다른 닉네임을 선택해주세요.");
+    });
+
+    // 닉네임이 설정되면 입력 필드 비활성화 및 수정 버튼 활성화
     setIsNicknameSet(true);
   };
 
@@ -94,6 +107,10 @@ function ChatApp() {
           onChange={(e) => setNickname(e.target.value)}
           placeholder="닉네임을 입력하세요"
           disabled={isNicknameSet}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") setNickName();
+          }}
+          autoFocus
         />
         {!isNicknameSet ? (
           <button onClick={setNickName}>닉네임 설정</button>
@@ -110,6 +127,7 @@ function ChatApp() {
               if (e.key === "Enter") sendMessage();
             }}
             disabled={!isNicknameSet}
+            ref={messageInputRef}
           />
           <button onClick={sendMessage}>전송</button>
         </div>
