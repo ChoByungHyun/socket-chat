@@ -28,7 +28,11 @@ const ChattingLayout: React.FC<ChattingLayoutProps> = ({
     <SChatListLayout ref={chatListRef}>
       {messages.map((data, index) => (
         <div key={index}>
-          <strong className={isMyMessage(data.nickname) ? "my-message" : ""}>
+          <strong
+            className={`${isMyMessage(data.nickname) ? "my-message" : ""} ${
+              data.nickname === "시스템" ? "system-message" : ""
+            }`}
+          >
             {data.nickname}:{" "}
           </strong>
           {data.message}
@@ -41,8 +45,12 @@ const SChatListLayout = styled.div`
   height: 50vh;
   overflow-y: scroll;
   border: 1px solid #ccc;
+  background-color: #eeecec;
   .my-message {
     color: #007bff;
+  }
+  .system-message {
+    color: red;
   }
 `;
 export default ChattingLayout;

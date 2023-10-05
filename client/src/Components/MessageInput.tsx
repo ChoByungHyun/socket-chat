@@ -60,7 +60,6 @@ const SMessageInput = styled(Styled.SInputStyle)`
   width: 300px;
   border: 1px solid #ccc;
   border-radius: 10px;
-  padding: 5px 10px;
 `;
 
 export default MessageInput;

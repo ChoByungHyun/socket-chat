@@ -17,7 +17,7 @@ const NicknameInput: React.FC<NicknameInputProps> = ({
   const [inputNickname, setInputNickname] = useState("");
 
   return (
-    <div>
+    <SNickNameLayout>
       <SNickNameInput
         type="text"
         value={inputNickname}
@@ -41,10 +41,12 @@ const NicknameInput: React.FC<NicknameInputProps> = ({
           닉네임 수정
         </Styled.SSendButton>
       )}
-    </div>
+    </SNickNameLayout>
   );
 };
-
+const SNickNameLayout = styled.div`
+  display: flex;
+`;
 const SNickNameInput = styled(Styled.SInputStyle)`
   width: 70px;
   text-align: center;

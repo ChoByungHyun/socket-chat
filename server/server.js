@@ -80,5 +80,8 @@ function isNicknameTaken(nickname) {
       return true;
     }
   }
+  if (nickname.length > 10 || nickname.length < 2 || nickname === "시스템") {
+    return true;
+  }
   return false;
 }
