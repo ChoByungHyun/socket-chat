@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import styled from "styled-components";
 
-const socket = io("http://localhost:3001");
+const serverUrl: string | undefined = process.env.REACT_APP_SERVER_URL || "";
+const socket = io(serverUrl);
 
 function ChatApp() {
   const [messages, setMessages] = useState<
@@ -58,13 +59,7 @@ function ChatApp() {
   const isMyMessage = (msgNickname: string) => {
     return msgNickname === nickname;
   };
-  const isNicknameChangeMessage = (msg: string) => {
-    console.log(
-      "🚀 ~ file: chatting.tsx:62 ~ isNicknameChangeMessage ~ msg:",
-      msg
-    );
-    return msg.includes("님이") && msg.includes("으로 변경하였습니다.");
-  };
+
   return (
     <div>
       <SChatLayout>
@@ -72,12 +67,7 @@ function ChatApp() {
           {messages.map((data, index) => (
             <div key={index}>
               <strong
-                className={
-                  isMyMessage(data.nickname) ||
-                  isNicknameChangeMessage(data.message)
-                    ? "my-message"
-                    : ""
-                }
+                className={isMyMessage(data.nickname) ? "my-message" : ""}
               >
                 {data.nickname}:{" "}
               </strong>
